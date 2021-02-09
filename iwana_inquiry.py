@@ -16,12 +16,12 @@ table = dynamodb.Table("inqury_table")
 import smtplib
 from email.mime.text import MIMEText
 
-from_email = "<Email>"
-password = '<Password>'
+from_email = "<email>"
+password = '<password>'
 email_port = 587
 
 subject_user = "Iwana: お問い合わせにつきまして"
-subject_owner = "Iwana: お問い合わせの連絡"
+subject_owner = "お問い合わせの連絡"
 
 message_user = """
 <h3>{user_} 様</h3>
@@ -40,6 +40,17 @@ message_user = """
 <br/>
 Iwana公式<br/>
 {from_}
+"""
+
+message_owner = """
+<h3>{user_} 様よりお問い合わせの連絡</h3>
+
+<h4>項目</h4>{category_}
+
+<h4>内容</h4>{content_}
+
+<h4>mail</h4>{mail_}
+
 """
 
 
@@ -67,12 +78,21 @@ def sending_user(name, mail, content, category):
     msg["To"] = mail
     msg["From"] = from_email
     
+    
+    message_ow = message_owner.format(mail_=mail, user_=name, content_=content, category_=category)
+    msg_owner = MIMEText(message_ow, "html")
+    msg_owner["Subject"] = subject_owner
+    msg_owner["To"] = from_email
+    msg_owner["From"] = from_email
+    
+    
     server = smtplib.SMTP("smtp.gmail.com", email_port)
     server.starttls()
     server.login(from_email, password)
     server.send_message(msg)
+    server.send_message(msg_owner)
     server.quit()
-    
+
 def operation_scan():
     scanData = table.scan()# get all
     items = scanData['Items']
@@ -98,6 +118,7 @@ def operation_put(id, name, mail, content, category):
     else:
         sending_user(name, mail, content, category)
     return putResponse
+
 
 def lambda_handler(event, context):
     # TODO implement
