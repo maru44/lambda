@@ -6,52 +6,28 @@ import re, datetime
 # for generate id
 import random, string
 
+import os
+
 """    DynamoDB    """
 from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table("inqury_table")
+table = dynamodb.Table(os.environ["DB_NAME"])
 
 """    Email    """
 import smtplib
 from email.mime.text import MIMEText
 
-from_email = "<email>"
-password = '<password>'
+from_email = os.environ["FROM_MAIL"]
+password = os.environ["MAIL_PASS"]
 email_port = 587
 
-subject_user = "Iwana: お問い合わせにつきまして"
-subject_owner = "お問い合わせの連絡"
+subject_user = os.environ["SUB_USER"]
+subject_owner = os.environ["SUB_OWNER"]
 
-message_user = """
-<h3>{user_} 様</h3>
+message_user = os.environ["MESS_USER"]
 
-お問い合わせありがとうございます。<br/>
-こちらのメールは自動送信メールです。<br/>
-<br/>
-以下の内容で承りました。<br/>
-<br/>
-==============================<br/>
-<h4>項目</h4>{category_}
-
-<h4>内容</h4>{content_}<br/>
-<br/>
-==============================<br/>
-<br/>
-Iwana公式<br/>
-{from_}
-"""
-
-message_owner = """
-<h3>{user_} 様よりお問い合わせの連絡</h3>
-
-<h4>項目</h4>{category_}
-
-<h4>内容</h4>{content_}
-
-<h4>mail</h4>{mail_}
-
-"""
+message_owner = os.environ["MESS_OWNER"]
 
 
 # generate id
@@ -98,6 +74,7 @@ def operation_scan():
     items = scanData['Items']
     print(items)
     return scanData
+
     
 def operation_put(id, name, mail, content, category):
     date = gen_datetime()[0]
