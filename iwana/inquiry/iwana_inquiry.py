@@ -17,16 +17,20 @@ table = dynamodb.Table(os.environ["DB_NAME"])
 """    Email    """
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 from_email = os.environ["FROM_MAIL"]
+
+smtp_user = os.environ["SMTP_USER"]
 password = os.environ["MAIL_PASS"]
+
+host = os.environ["HOST"]
 email_port = 587
 
 subject_user = os.environ["SUB_USER"]
 subject_owner = os.environ["SUB_OWNER"]
 
 message_user = os.environ["MESS_USER"]
-
 message_owner = os.environ["MESS_OWNER"]
 
 
@@ -48,33 +52,60 @@ def gen_datetime():
     
 # send email
 def sending_user(name, mail, content, category):
+    content = re.sub('\r|\n\r\|\n', '<br>', content)
     message = message_user.format(from_=from_email, user_=name, content_=content, category_=category)
-    msg = MIMEText(message, "html")
+    
+    msg = MIMEMultipart('alternative')
+    #msg = MIMEText(message, "html")
+    
     msg["Subject"] = subject_user
     msg["To"] = mail
     msg["From"] = from_email
     
+    msg_bod = MIMEText(message, "html")
+    msg.attach(msg_bod)
+    
     
     message_ow = message_owner.format(mail_=mail, user_=name, content_=content, category_=category)
-    msg_owner = MIMEText(message_ow, "html")
+    
+    #msg_owner = MIMEText(message_ow, "html")
+    msg_owner = MIMEMultipart('alternative')
+    
     msg_owner["Subject"] = subject_owner
     msg_owner["To"] = from_email
     msg_owner["From"] = from_email
     
+    msg_owner_bod = MIMEText(message_ow, "html")
+    msg_owner.attach(msg_owner_bod)
     
-    server = smtplib.SMTP("smtp.gmail.com", email_port)
+    
+    server = smtplib.SMTP(host, email_port)
+    server.ehlo()
     server.starttls()
-    server.login(from_email, password)
-    server.send_message(msg)
-    server.send_message(msg_owner)
-    server.quit()
+    server.ehlo()
+    
+    # gmail
+    #server.login(from_email, password)
+    
+    # AWS SES
+    server.login(smtp_user, password)
+    
+    # for user
+    #server.send_message(msg)
+    server.sendmail(from_email, mail, msg.as_string())
+    
+    # for owner
+    #server.send_message(msg_owner)
+    server.sendmail(from_email, from_email, msg_owner.as_string())
+    
+    server.close()
+
 
 def operation_scan():
     scanData = table.scan()# get all
     items = scanData['Items']
     print(items)
     return scanData
-
     
 def operation_put(id, name, mail, content, category):
     date = gen_datetime()[0]
@@ -93,6 +124,7 @@ def operation_put(id, name, mail, content, category):
     if putResponse['ResponseMetadata']['HTTPStatusCode'] != 200:
         print(putResponse)
     else:
+        print(200, putResponse)
         sending_user(name, mail, content, category)
     return putResponse
 
