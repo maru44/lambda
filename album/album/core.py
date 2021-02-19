@@ -50,11 +50,19 @@ def filter_album(**kwargs):
 def list_album_group(id_):
     album_db = call_db("ALBUM_DB")
     try:
+        
         response = album_db.query(
-            KeyConditionExpression=Key("groupId").eq(id_),
-            ScanIndexForward = False,# descendant default=True
-            Limit = 2# limit
+            KeyConditionExpression=Key("groupId").eq(id_) or Key("groupId").eq("R6YzlbJqfoBT"),
+            ScanIndexForward = False# descendant default=True
+            #Limit = 2# limit
         )
+        """
+        response = album_db.query(
+            KeyConditionExpression="groupId = :id",
+            FilterExpression="posted = :po",
+            ExpressionAttributeValues
+        )
+        """
     except ClientError as e:
         print(e.response['Error']['Message'])
     else:

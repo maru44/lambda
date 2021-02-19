@@ -33,6 +33,8 @@ subject_owner = os.environ["SUB_OWNER"]
 message_user = os.environ["MESS_USER"]
 message_owner = os.environ["MESS_OWNER"]
 
+my_usual_email = os.environ["USUAL_MAIL"]
+
 
 # generate id
 def gen_id():
@@ -96,7 +98,7 @@ def sending_user(name, mail, content, category):
     
     # for owner
     #server.send_message(msg_owner)
-    server.sendmail(from_email, from_email, msg_owner.as_string())
+    server.sendmail(from_email, my_usual_email, msg_owner.as_string())
     
     server.close()
 
