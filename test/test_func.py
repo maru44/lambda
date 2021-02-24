@@ -43,11 +43,6 @@ def player_list():
     items = players
     return items
     
-def scrape_information():
-    #raw_data = requests.get("https://scrape.turai.work/json?")
-    raw_data = requests.get("https://scrape.turai.work/json?", headers=SC_HEADERS)
-    return raw_data.json()
-    
 def search_history():
     pass
 
@@ -264,8 +259,6 @@ def lambda_handler(event, context):
         elif OperationType == "YAHOO_LIST":
             keyword_ = event["Keys"]["keyword"]
             return yahoo_list(keyword_)
-        elif OperationType == "TEST":
-            return scrape_information()
             
     except Exception as e:
         print("Error: ")
