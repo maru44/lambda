@@ -133,4 +133,5 @@ mail.py
 
 
 # Golang
+.serverless
 serverless.yml
